@@ -1,0 +1,44 @@
+Metadata-Version: 1.1
+Name: hetnetana
+Version: 0.1.0
+Summary: A Python package for integrating data and performing topological footprint analysis
+Home-page: https://tor-2.scai.fraunhofer.de/gf/project/banana/
+Author: Charles Tapley Hoyt
+Author-email: charles.hoyt@scai.fraunhofer.de
+License: All Rights Reserved.
+Description: HetNetAna
+        =========
+        
+        Heterogeneous network analysis, built on top of :code:`networkx` in Python3.
+        
+        This project lives in SCAIGForge at https://tor-2.scai.fraunhofer.de/gf/project/banana/
+        
+        Installation
+        ------------
+        
+        Development
+        ~~~~~~~~~~~
+        
+        .. code-block:: sh
+            
+            $ USER=$(whoami) # replace with your username
+            $ git clone "http://$USER@tor-2.scai.fraunhofer.de/git/banana"
+            $ python -m pip install -e . 
+        
+        User
+        ~~~~
+        
+        .. code-block:: sh
+        
+            python -m pip install git+https://tor-2.scai.fraunhofer.de/gf/project/banana.git`
+        
+Keywords: Fraunhofer,SCAI,Hetnetana
+Platform: UNKNOWN
+Classifier: Development Status :: 1 - Planning
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: License :: Other/Proprietary License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Topic :: Scientific/Engineering :: Bio-Informatics

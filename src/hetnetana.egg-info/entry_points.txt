@@ -1,0 +1,3 @@
+[console_scripts]
+hetnetana = hetnetana.cli:main
+
