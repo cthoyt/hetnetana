@@ -1,27 +1,22 @@
+import logging
 import os
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-# Learning and Validation
-from sklearn import linear_model
-from sklearn.cross_validation import cross_val_predict
-from sklearn import cross_validation
-from sklearn.metrics import confusion_matrix
-from sklearn.decomposition import PCA  # , FastICA
-from sklearn.cluster import KMeans
-
-# Feature Selection
-from sklearn.feature_selection import SelectKBest, chi2
-from sklearn.ensemble import ExtraTreesClassifier
-
 from mpl_toolkits.mplot3d import Axes3D
-
-import logging
+from sklearn import cross_validation
+from sklearn import linear_model
+from sklearn.cluster import KMeans
+from sklearn.cross_validation import cross_val_predict
+from sklearn.decomposition import PCA  # , FastICA
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.feature_selection import SelectKBest, chi2
+from sklearn.metrics import confusion_matrix
 
 log = logging.getLogger()
 log.info('Loaded {}'.format(Axes3D))
+
 
 # TODO: update to match notebook
 def main(footprint_path, training_path, od):

@@ -3,12 +3,12 @@ import sys
 
 import click
 import networkx as nx
-from .struct.hetnet_examples import generate_example_1, generate_example_2, generate_example_3
-from .struct.multihetnet_io import from_resource as multihetnet_from_resource
 
+from .analysis import main as analysis_main
 from .generation.generate_toy import main as generate_toy_main
 from .struct.hetnet import HetNet
-from .analysis import main as analysis_main
+from .struct.hetnet_examples import generate_example_1, generate_example_2, generate_example_3
+from .struct.multihetnet_io import from_resource as multihetnet_from_resource
 
 
 @click.group()

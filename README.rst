@@ -10,12 +10,12 @@ The latest and greatest can be installed from the development branch on GitHub w
 
 .. code-block:: sh
 
-    pip install git+https://github.com/cthoyt/hetnetana.git@master
+    python3 -m pip install git+https://github.com/cthoyt/hetnetana.git@master
 
 The entire project can be downloaded for development with:
 
 .. code-block:: sh
 
     git clone https://github.com/cthoyt/hetnetana.git
-    cd pybel
-    pip install -e .
+    cd hetnetana
+    python3 -m pip install -e .
