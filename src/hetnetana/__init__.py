@@ -1,3 +1,4 @@
+from .constants import COLOR, ANNOTATIONS, TYPE
 from .struct.hetnet import HetNet
 from .struct.multihetnet import MultiHetNet
 
@@ -14,10 +15,6 @@ __license__ = 'All Rights Reserved.'
 __copyright__ = 'Copyright (c) 2016 Charles Tapley Hoyt'
 
 __all__ = ['HetNet', 'MultiHetNet', 'hgnc', 'mi', 'up']
-
-COLOR = 'color'
-ANNOTATIONS = 'annotations'
-TYPE = 'type'
 
 
 class ColorFormatter:

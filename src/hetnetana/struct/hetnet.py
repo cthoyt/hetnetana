@@ -15,11 +15,9 @@ import pandas as pd
 from numpy import random
 from scipy.stats import entropy
 
-log = logging.getLogger()
+from ..constants import ANNOTATIONS, COLOR
 
-ANNOTATIONS = 'annotations'
-COLOR = 'color'
-TYPE = 'type'
+log = logging.getLogger()
 
 
 class HetNet(nx.Graph):
@@ -30,7 +28,7 @@ class HetNet(nx.Graph):
         :rtype: HetNet
         :param params: the parameters
         """
-        super().__init__(self)
+        nx.Graph.__init__(self)
         self.params = params
         self.colors = set(self.params.keys())
         self.annotations = {color: list(sorted(annots.keys())) for color, annots in self.params.items()}

@@ -28,7 +28,6 @@ class TestProperties(TestMultiHetNetBase):
         with TemporaryDirectory() as td:
             self.hn.to_resource(td)
             reloaded = multihetnet_from_resource(os.path.join(td, 'resources.json'))
-            self.assertCountEqual(self.hn.nodes(), reloaded.nodes())
             self.assertGraphEqual(self.hn, reloaded)
 
 

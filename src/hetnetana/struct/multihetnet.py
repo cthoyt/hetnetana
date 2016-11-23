@@ -12,11 +12,9 @@ import numpy as np
 import pandas as pd
 from scipy.stats import entropy
 
-log = logging.getLogger()
+from ..constants import COLOR, ANNOTATIONS, TYPE
 
-ANNOTATIONS = 'annotations'
-COLOR = 'color'
-TYPE = 'type'
+log = logging.getLogger('hetnetana')
 
 
 def timing(f):
@@ -37,7 +35,7 @@ class MultiHetNet(nx.MultiGraph):
         :rtype: HetNet
         :param params: the parameters
         """
-        super().__init__(data, **attr)
+        nx.MultiGraph.__init__(self, data=data, **attr)
         self.params = params
         if params:
             self.annotations = {color: list(sorted(annotations.keys())) for color, annotations in params.items()}
@@ -94,7 +92,8 @@ class MultiHetNet(nx.MultiGraph):
                             yield (node,) + path
 
     def match_terminal_cp_path(self, node, cp):
-        *head, edge_key, (tail_color, tail_annotations) = cp
+        head = cp[:-2]
+        edge_key, (tail_color, tail_annotations) = cp[-2:]
         paths = []
         for *path, path_terminal in self.match_simple_cp_path(node, head):
             for neighbor in self.neighbors(path_terminal):
@@ -158,7 +157,7 @@ class MultiHetNet(nx.MultiGraph):
 
         return tuple(t)
 
-    def get_walks(self, node, length, stochastic=False, n_walks=10000):
+    def get_walks(self, node, length, stochastic=False, n_walks=None):
         if stochastic:
             log.debug("Number walks: {}".format(n_walks))
             raise NotImplementedError
@@ -166,7 +165,7 @@ class MultiHetNet(nx.MultiGraph):
 
     @timing
     def calculate_footprints(self, nodes=None, max_length=None, color_path_type=None, annotations=None,
-                             n_walks=10000, stochastic=False, normalize=False, entropies=False):
+                             n_walks=None, stochastic=False, normalize=False, entropies=False):
         """
         Calculate the topological footprints for the given nodes
 
@@ -232,7 +231,7 @@ class MultiHetNet(nx.MultiGraph):
                     else:
                         features[node][color_path] = top_count
 
-        features_df = pd.DataFrame.from_dict(features).T.fillna(0).sort_index(axis=0).sort_index(axis=1)
+        features_df = pd.DataFrame.from_dict(dict(features)).T.fillna(0).sort_index(axis=0).sort_index(axis=1)
 
         self.graph['latest_footprint_config_specifics'] = {
             'descriptors': features_df.columns,
@@ -296,7 +295,8 @@ class MultiHetNet(nx.MultiGraph):
 
 def pairwise(iterable):
     it = iter(iterable)
-    yield from zip(it, it)
+    for a, b in zip(it, it):
+        yield a, b
 
 
 def encode_color_path(color_path, color_path_type="simple", entry_sep="&", sep="|", attr_sep=";", kv_sep=":",
@@ -308,14 +308,15 @@ def encode_color_path(color_path, color_path_type="simple", entry_sep="&", sep="
     elif color_path_type == 'simple':
         return entry_sep.join('{}{}{}'.format(a, property_sep, b) for a, b in pairwise(color_path))
     elif color_path_type == "terminal":
-        *cp_head, terminal_property, (terminal_color, terminal_classes) = color_path
+        cp_head = color_path[:-2]
+        terminal_property, (terminal_color, terminal_classes) = color_path[-2:]
         if cp_head:
             s = encode_color_path(cp_head, color_path_type='simple', entry_sep=entry_sep, sep=sep, attr_sep=attr_sep,
                                   kv_sep=kv_sep, property_sep=property_sep)
             s += entry_sep
         else:
             s = ''
-        s += terminal_property
+        s += str(terminal_property)
         s += property_sep
         s += str(terminal_color)
         if terminal_classes:

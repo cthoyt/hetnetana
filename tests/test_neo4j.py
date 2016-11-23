@@ -4,7 +4,6 @@ import unittest
 from tempfile import TemporaryDirectory
 
 import py2neo
-
 from hetnetana.struct import multihetnet_examples
 from hetnetana.struct.multihetnet_io import from_neo4j as mhn_from_neo4j
 from hetnetana.struct.multihetnet_io import to_neo4j as mhn_to_neo4j
@@ -21,10 +20,12 @@ class TestNeoIo(unittest.TestCase):
     def setUp(self):
         self.standard = multihetnet_examples.generate_example_1()
         self.td = TemporaryDirectory()
+        self.hetnetana_test_context = 'HETNETANA_TEST'
         self.resources = self.standard.to_resource(self.td.name)
 
         self.neo_graph = py2neo.Graph(os.environ['NEO_PATH'])
-        self.neo_graph.run('match (n)-[r]-(v) where r.context_hetnetana = "TEST" detach delete n, r, v')
+        self.neo_graph.run('match (n)-[r]-(v) where r.context_hetnetana = "{}" detach delete n, r, v'.format(
+            self.hetnetana_test_context))
 
         self.qnames = {
             'g': 'Gene',
@@ -33,27 +34,30 @@ class TestNeoIo(unittest.TestCase):
         }
 
     def doCleanups(self):
-        self.neo_graph.run('match (n)-[r]-(v) where r.context_hetnetana = "TEST" detach delete n, r, v')
+        self.neo_graph.run('match (n)-[r]-(v) where r.context_hetnetana = "{}" detach delete n, r, v'.format(
+            self.hetnetana_test_context))
         self.td.cleanup()
 
     def test_upload(self):
-        mhn_to_neo4j(self.standard, self.neo_graph, self.qnames, context='TEST')
+        mhn_to_neo4j(self.standard, self.neo_graph, self.qnames, context=self.hetnetana_test_context)
 
         x = self.neo_graph.run(
-            'MATCH (n) OPTIONAL MATCH (n)-[r]->(z) where r.context_hetnetana = "TEST" RETURN count(r) as count').evaluate()
+            'MATCH (n) OPTIONAL MATCH (n)-[r]->(z) where r.context_hetnetana = "{}" RETURN count(r) as count'.format(
+                self.hetnetana_test_context)).evaluate()
         self.assertEqual(len(self.standard.edges()), x)
 
         x = self.neo_graph.run(
-            'MATCH (n)-[r]-(z) where r.context_hetnetana = "TEST" RETURN n.name as u, z.name as v').data()
+            'MATCH (n)-[r]-(z) where r.context_hetnetana = "{}" RETURN n.name as u, z.name as v'.format(
+                self.hetnetana_test_context)).data()
         x = {tuple(sorted([edge['u'], edge['v']])) for edge in x}
         st_cn = {tuple(sorted(edge)) for edge in self.standard.edges()}
 
         self.assertSetEqual(st_cn, x)
 
     def test_io(self):
-        mhn_to_neo4j(self.standard, self.neo_graph, self.qnames, context='TEST')
+        mhn_to_neo4j(self.standard, self.neo_graph, self.qnames, context=self.hetnetana_test_context)
 
-        test = mhn_from_neo4j(self.resources, self.neo_graph, self.qnames, context='TEST')
+        test = mhn_from_neo4j(self.resources, self.neo_graph, self.qnames, context=self.hetnetana_test_context)
 
         self.assertSetEqual(set(test.nodes()), set(self.standard.nodes()))
 

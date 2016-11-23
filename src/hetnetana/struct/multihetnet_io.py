@@ -5,7 +5,8 @@ from collections import defaultdict
 
 from py2neo import Node, Relationship
 
-from .multihetnet import MultiHetNet, COLOR, ANNOTATIONS, TYPE
+from .multihetnet import MultiHetNet
+from ..constants import COLOR, ANNOTATIONS, TYPE
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.WARNING)
@@ -32,9 +33,10 @@ def load_nodes(hn, fp, color, attributes=None, delimiter='\t'):
     attributes = attributes if attributes else {}
 
     with open(os.path.expanduser(fp)) as f:
-        _, *header = next(f).strip().split(delimiter)
+        _ = next(f).strip().split(delimiter)[1:]
         for row in f:
-            node, *features = row.strip().split(delimiter)
+            row = row.strip().split(delimiter)
+            node, features = row[0], row[1:]
             annotations = {attribute: features[column_idx] for attribute, column_idx in attributes.items()}
             hn.add_node(node, attr_dict={COLOR: color, ANNOTATIONS: annotations})
 
@@ -159,7 +161,7 @@ def from_neo4j(resources, neo_graph, qnames, context):
         v_qname = qnames[v]
 
         key = d['type']
-        edge_query = 'MATCH (u:{})-[r:{}]-(v:{}) where r.context_hetnetana = "{}"RETURN u.name as S, v.name as T'.format(
+        edge_query = 'MATCH (u:{})-[r:{}]-(v:{}) where r.context_hetnetana = "{}" RETURN u.name as S, v.name as T'.format(
             u_qname, key, v_qname, context)
 
         for record in neo_graph.run(edge_query).data():
