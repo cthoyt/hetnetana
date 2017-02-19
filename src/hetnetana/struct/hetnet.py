@@ -2,6 +2,8 @@
 
 """Heterogeneous network data wrapper"""
 
+from __future__ import print_function
+
 import json
 import logging
 import os
@@ -11,11 +13,11 @@ from getpass import getuser
 
 import networkx as nx
 import numpy as np
-import pandas as pd
 from numpy import random
+from pandas import DataFrame
 from scipy.stats import entropy
 
-from ..constants import ANNOTATIONS, COLOR
+from ..constants import ANNOTATIONS, COLOR, CP_SIMPLE, CP_TERMINAL, CP_ALL
 
 log = logging.getLogger()
 
@@ -23,12 +25,12 @@ log = logging.getLogger()
 class HetNet(nx.Graph):
     """Wrapper of networkx graph for dealing with heterogeneous networks"""
 
-    def __init__(self, params=None):
+    def __init__(self, params=None, **kwargs):
         """
         :rtype: HetNet
         :param params: the parameters
         """
-        nx.Graph.__init__(self)
+        super(HetNet, self).__init__(self, **kwargs)
         self.params = params
         self.colors = set(self.params.keys())
         self.annotations = {color: list(sorted(annots.keys())) for color, annots in self.params.items()}
@@ -165,10 +167,11 @@ class HetNet(nx.Graph):
         attributes = attributes if attributes else []
 
         with open(os.path.expanduser(file)) as f:
-            _, *header = next(f).strip().split(delimiter)
+            header = next(f).strip().split(delimiter)
             for row in f:
-                node, *features = row.strip().split(delimiter)
-                annotations = {attr: value for attr, value in zip(header, features) if attr in attributes}
+                row = row.strip().split(delimiter)
+                node, features = row[0], row[1:]
+                annotations = {attr: value for attr, value in zip(header[1:], features) if attr in attributes}
                 self.add_node(node, {"color": color, "annotations": annotations})
 
     def load_edges(self, file, delimiter="\t"):
@@ -178,9 +181,13 @@ class HetNet(nx.Graph):
         :param delimiter:
         """
         with open(os.path.expanduser(file)) as f:
-            ha, hb, *attributes = next(f).strip().split(delimiter)
+            header = next(f).strip().split(delimiter)
+            # ha, hb = header[:2]
+            attributes = header[2:]
             for line in f:
-                i, j, *features = line.strip().split(delimiter)
+                line = line.strip().split(delimiter)
+                i, j = line[:2]
+                features = line[2:]
                 self.add_edge(i, j, dict(zip(attributes, features)))
 
     """ NETWORK METHODS """
@@ -194,7 +201,7 @@ class HetNet(nx.Graph):
         """
         return {node: self.match_color_paths(node, color_path, color_path_type=color_path_type) for node in self}
 
-    def match_color_paths(self, node, color_path, color_path_type='simple'):
+    def match_color_paths(self, node, color_path, color_path_type=CP_SIMPLE):
         """
         Exhaustively find all paths starting at a given node that match a given color path
         :param node:
@@ -205,11 +212,11 @@ class HetNet(nx.Graph):
         assert node in self, '{} not in network'.format(node)
         validate_color_path(color_path, color_path_type, valid_colors=self.colors)
 
-        if color_path_type == 'simple':
+        if color_path_type == CP_SIMPLE:
             return self._match_simple_color_paths(node, color_path)
-        elif color_path_type == 'terminal':
+        elif color_path_type == CP_TERMINAL:
             return self._match_terminal_color_paths(node, color_path)
-        elif color_path_type == 'all':
+        elif color_path_type == CP_ALL:
             return self._match_total_color_paths(node, color_path)
 
     def _match_simple_color_paths(self, node, color_path):
@@ -309,9 +316,9 @@ class HetNet(nx.Graph):
         validate_color_path_type(color_path_type)
         if color_path_type == "simple":
             return self._colorize_to_simple(path)
-        elif color_path_type == 'terminal':
+        elif color_path_type == CP_TERMINAL:
             return self._colorize_to_terminal(path, annotations)
-        elif color_path_type == 'all':
+        elif color_path_type == CP_ALL:
             return self._colorize_to_total(path, annotations)
 
     def _get_walks_exhaustive(self, node, length):
@@ -354,7 +361,7 @@ class HetNet(nx.Graph):
         :type max_length: int
         :param color_path_type: type of color path to generate
         :type color_path_type: str
-        :param annotations: annotations to use if color path type is 'terminal' or 'total'. defaults to all annotations.
+        :param annotations: annotations to use if color path type is CP_TERMINAL or CP_ALL. defaults to all annotations.
         :type annotations: dict
         :param stochastic: use stochastic sampling technique? defaults to false, and an exhaustive search is performed.
                             A stochastic approach might be more appropriate for enormous networks.
@@ -365,8 +372,9 @@ class HetNet(nx.Graph):
                           automatically normalized because their unnormalized interpretation is nonsensical.
         :type normalize: bool
         :param entropies: additionally calculate entropies
-        :type entropies: boolean
+        :type entropies: bool
         :return: DataFrame containing the calculated topological features
+        :rtype: DataFrame
         """
 
         if nodes is None:
@@ -374,8 +382,8 @@ class HetNet(nx.Graph):
         elif isinstance(nodes, str):
             nodes = self.get_color_map()[nodes]
 
-        max_length = max_length if max_length is not None else 1 + int(1.25 * np.ceil(np.log(np.log(len(self)))))
-        color_path_type = color_path_type if color_path_type is not None else 'terminal'
+        max_length = max_length if max_length is not None else calculate_default_path_length(self)
+        color_path_type = color_path_type if color_path_type is not None else CP_TERMINAL
         n_walks = n_walks if n_walks is not None else 10000
 
         features = {}
@@ -407,7 +415,7 @@ class HetNet(nx.Graph):
                     else:
                         features[node][color_path] = top_count
 
-        features_df = pd.DataFrame.from_dict(features).T.fillna(0).sort_index(axis=0).sort_index(axis=1)
+        features_df = DataFrame.from_dict(features).T.fillna(0).sort_index(axis=0).sort_index(axis=1)
 
         self.graph['latest_footprint_config'] = {
             'analysis_time': str(datetime.now()),
@@ -423,7 +431,7 @@ class HetNet(nx.Graph):
 
 
 def validate_color_path_type(color_path_type):
-    if color_path_type not in {'simple', 'terminal', 'all'}:
+    if color_path_type not in {CP_SIMPLE, CP_TERMINAL, CP_ALL}:
         raise ValueError('invalid color_path_type: {}'.format(color_path_type))
 
 
@@ -432,15 +440,15 @@ def validate_color_path(color_path, color_path_type, valid_colors):
 
     valid_color_set = set(valid_colors)
 
-    if color_path_type == 'simple':
+    if color_path_type == CP_SIMPLE:
         if not all(color in valid_color_set for color in color_path):
             raise ValueError('invalid {} color path: {}'.format(color_path_type, color_path))
 
-    elif color_path_type == 'terminal':
+    elif color_path_type == CP_TERMINAL:
         if not all(color in valid_color_set for color in color_path[:-1]) or not color_path[-1][0] in valid_color_set:
             raise ValueError('invalid {} color path: {}'.format(color_path_type, color_path))
 
-    elif color_path_type == 'all':
+    elif color_path_type == CP_ALL:
         if not all(color[0] in valid_color_set for color in color_path):
             raise ValueError('invalid {} color path: {}'.format(color_path_type, color_path))
 
@@ -465,7 +473,7 @@ def encode_color_path(color_path, color_path_type="simple", entry_sep="&", sep="
             color, sep, attr_sep.join("{}{}{}".format(a, kv_sep, b)
                                       for a, b in sorted(annotations)))
                               for color, annotations in color_path)
-    elif color_path_type == 'simple':
+    elif color_path_type == CP_SIMPLE:
         return entry_sep.join(color_path)
 
 
@@ -474,7 +482,7 @@ def decode_color_path(color_path, color_path_type="simple", entry_sep="&", sep="
 
     color_path = [a for a in color_path.strip().split(entry_sep) if a]
 
-    if color_path_type == 'simple':
+    if color_path_type == CP_SIMPLE:
         return tuple(color_path)
 
     elif color_path_type == "terminal":
@@ -491,3 +499,13 @@ def decode_color_path(color_path, color_path_type="simple", entry_sep="&", sep="
         color_path = [(a, tuple(tuple(d for d in c.split(kv_sep) if d) for c in b.split(attr_sep) if c)) for a, b in
                       color_path]
         return tuple(color_path)
+
+
+def calculate_default_path_length(g):
+    """Calculates the default length of the paths to search based on the graph
+
+    :param g: a graph
+    :type g: HetNet
+    :return:
+    """
+    return 1 + int(1.25 * np.ceil(np.log(np.log(g.number_of_nodes()))))

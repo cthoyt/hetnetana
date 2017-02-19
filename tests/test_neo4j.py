@@ -4,6 +4,7 @@ import unittest
 from tempfile import TemporaryDirectory
 
 import py2neo
+
 from hetnetana.struct import multihetnet_examples
 from hetnetana.struct.multihetnet_io import from_neo4j as mhn_from_neo4j
 from hetnetana.struct.multihetnet_io import to_neo4j as mhn_to_neo4j
@@ -18,14 +19,22 @@ logging.getLogger("httpstream").setLevel(logging.WARNING)
 @unittest.skipUnless('NEO_PATH' in os.environ, 'Need NEO_PATH to configure test')
 class TestNeoIo(unittest.TestCase):
     def setUp(self):
-        self.standard = multihetnet_examples.generate_example_1()
-        self.td = TemporaryDirectory()
+
         self.hetnetana_test_context = 'HETNETANA_TEST'
-        self.resources = self.standard.to_resource(self.td.name)
 
         self.neo_graph = py2neo.Graph(os.environ['NEO_PATH'])
-        self.neo_graph.run('match (n)-[r]-(v) where r.context_hetnetana = "{}" detach delete n, r, v'.format(
-            self.hetnetana_test_context))
+
+        try:
+            self.neo_graph.run('match (n)-[r]-(v) where r.context_hetnetana = "{}" detach delete n, r, v'.format(
+                self.hetnetana_test_context))
+        except py2neo.database.status.GraphError:
+            self.skipTest("Can't connect to neo4j")
+
+        self.standard = multihetnet_examples.generate_example_1()
+
+        self.td = TemporaryDirectory()
+
+        self.resources = self.standard.to_resource(self.td.name)
 
         self.qnames = {
             'g': 'Gene',
@@ -33,7 +42,7 @@ class TestNeoIo(unittest.TestCase):
             's': 'SNP'
         }
 
-    def doCleanups(self):
+    def tearDown(self):
         self.neo_graph.run('match (n)-[r]-(v) where r.context_hetnetana = "{}" detach delete n, r, v'.format(
             self.hetnetana_test_context))
         self.td.cleanup()

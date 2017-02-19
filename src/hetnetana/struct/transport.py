@@ -1,5 +1,6 @@
 from .hetnet import HetNet
 from .multihetnet import MultiHetNet
+from ..constants import COLOR, ANNOTATIONS
 
 
 def convert(simple_hetnet, collapse_color, collapse_source, collapse_keys, edge_annotations):
@@ -27,8 +28,8 @@ def convert(simple_hetnet, collapse_color, collapse_source, collapse_keys, edge_
     for color, nodes in node_map.items():
         for node in nodes:
             multi_hetnet.add_node(node, {
-                'color': color,
-                'annotations': simple_hetnet.get_annotations(node)
+                COLOR: color,
+                ANNOTATIONS: simple_hetnet.get_annotations(node)
             })
 
     edge_map = simple_hetnet.get_edge_map()

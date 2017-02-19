@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import json
 import logging
 import os
@@ -6,7 +8,7 @@ import unittest
 
 from hetnetana.struct.multihetnet_io import from_resource as multihetnet_from_resource
 
-log = logging.getLogger('tests')
+log = logging.getLogger(__name__)
 
 
 def sort_nodes_key(hn):

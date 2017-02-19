@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import json
 import logging
 import os
@@ -30,12 +32,12 @@ def timing(f):
 
 # TODO: multiple inheritance
 class MultiHetNet(nx.MultiGraph):
-    def __init__(self, *, data=None, params=None, **attr):
+    def __init__(self, params=None, **kwargs):
         """
         :rtype: HetNet
         :param params: the parameters
         """
-        nx.MultiGraph.__init__(self, data=data, **attr)
+        super(MultiHetNet, self).__init__(self, **kwargs)
         self.params = params
         if params:
             self.annotations = {color: list(sorted(annotations.keys())) for color, annotations in params.items()}
@@ -84,7 +86,8 @@ class MultiHetNet(nx.MultiGraph):
         if 0 == len(cp):
             yield node,
         else:
-            key, color, *head = cp
+            key, color = cp[:2]
+            head = cp[2:]
             for neighbor in self.neighbors(node):
                 if self.get_color(neighbor) == color and key in self.edge[node][neighbor]:
                     for path in self.match_simple_cp_path(neighbor, head):
@@ -95,7 +98,9 @@ class MultiHetNet(nx.MultiGraph):
         head = cp[:-2]
         edge_key, (tail_color, tail_annotations) = cp[-2:]
         paths = []
-        for *path, path_terminal in self.match_simple_cp_path(node, head):
+        for path_full in self.match_simple_cp_path(node, head):
+            path = path_full[:-1]
+            path_terminal = path_full[-1]
             for neighbor in self.neighbors(path_terminal):
                 if edge_key in self.edge[path_terminal][neighbor] and \
                         self.node_matches(neighbor, tail_color, dict(tail_annotations)) and neighbor not in path:
