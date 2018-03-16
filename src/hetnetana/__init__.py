@@ -2,19 +2,21 @@ from .constants import COLOR, ANNOTATIONS, TYPE
 from .struct.hetnet import HetNet
 from .struct.multihetnet import MultiHetNet
 
+__all__ = ['HetNet', 'MultiHetNet', 'hgnc', 'mi', 'up']
+
 __version__ = '0.1.0'
 
 __title__ = 'hetnetana'
 __description__ = 'A Python package for integrating data and performing topological footprint analysis'
-__url__ = 'https://tor-2.scai.fraunhofer.de/gf/project/banana/'
+__url__ = 'https://github.com/cthoyt/hetnetana'
 
 __author__ = 'Charles Tapley Hoyt'
 __email__ = 'charles.hoyt@scai.fraunhofer.de'
 
 __license__ = 'All Rights Reserved.'
-__copyright__ = 'Copyright (c) 2016 Charles Tapley Hoyt'
+__copyright__ = 'Copyright (c) 2016-2018 Charles Tapley Hoyt'
 
-__all__ = ['HetNet', 'MultiHetNet', 'hgnc', 'mi', 'up']
+
 
 
 class ColorFormatter:

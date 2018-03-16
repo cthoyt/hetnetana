@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """Setup module for the Hetnetana package"""
 
 import codecs  # To use a consistent encoding
@@ -10,7 +12,7 @@ import setuptools
 
 PACKAGES = setuptools.find_packages(where='src')
 META_PATH = os.path.join('src', 'hetnetana', '__init__.py')
-KEYWORDS = ['Fraunhofer', 'SCAI', 'Hetnetana']
+KEYWORDS = ['Hetnetana']
 CLASSIFIERS = [
     'Development Status :: 1 - Planning',
     'Environment :: Console',

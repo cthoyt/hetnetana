@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 ANNOTATIONS = 'annotations'
 COLOR = 'color'
 TYPE = 'type'

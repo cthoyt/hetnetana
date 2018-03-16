@@ -19,3 +19,12 @@ The entire project can be downloaded for development with:
     git clone https://github.com/cthoyt/hetnetana.git
     cd hetnetana
     python3 -m pip install -e .
+
+
+Links
+-----
+After starting this project, it became apparent that others had also worked on similar ideas; notably, Daniel
+Himmelstein.
+
+- https://github.com/dhimmel/hetionet
+- https://think-lab.github.io/p/rephetio/
