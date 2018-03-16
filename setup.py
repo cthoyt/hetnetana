@@ -27,7 +27,7 @@ INSTALL_REQUIRES = [
     'numpy',
     'scipy',
     'pandas',
-    'networkx',
+    'networkx==1.11',
     'numpy',
     'pandas',
     'sklearn',
