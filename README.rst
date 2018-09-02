@@ -1,5 +1,5 @@
-HetNetAna
-=========
+HetNetAna |travis|
+==================
 
 Heterogeneous network analysis, built on top of :code:`networkx` in Python3.
 
@@ -28,3 +28,6 @@ Himmelstein.
 
 - https://github.com/dhimmel/hetionet
 - https://think-lab.github.io/p/rephetio/
+
+.. |travis| image:: https://travis-ci.com/cthoyt/hetnetana.svg?branch=master
+    :target: https://travis-ci.com/cthoyt/hetnetana
